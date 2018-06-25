@@ -1,5 +1,37 @@
 'use strict'
 
+var fs = require('fs')
+var path = require('path')
+var mongoose = require('mongoose')
+var db = 'mongodb://localhost/imooc-app'
+
+mongoose.Promise = require('bluebird')
+mongoose.connect(db)
+
+// require('./app/models/user')
+// require('./app/models/video')
+
+var models_path = path.join(__dirname, '/app/models')
+
+var walk = function(modelPath) {
+  fs
+    .readdirSync(modelPath)
+    .forEach(function(file){
+      var filePath = path.join(modelPath, '/' + file)
+      var stat = fs.statSync(filePath)
+
+      if(stat.isFile()){
+        if(/(.*)\.(js|coffee)/.test(file)){
+          require(filePath)
+        }
+      }else if(stat.isDirectory){
+        walk(filePath)
+      }
+    })
+}
+
+walk(models_path)
+
 var koa = require('koa')
 //日志中间件
 var logger = require('koa-logger')
